@@ -1,0 +1,29 @@
+# Catkin/build outputs
+build/
+devel/
+install/
+log/
+logs/
+.catkin_tools/
+CMakeCache.txt
+CMakeFiles/
+*.o
+*.so
+*.a
+# Local data and generated evaluations
+data/
+datasets/
+results/
+runtime/
+*.bag
+*.bag.active
+*.pcd
+*.csv
+*.meta.json
+__pycache__/
+*.py[cod]
+.venv/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

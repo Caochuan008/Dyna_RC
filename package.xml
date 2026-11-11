@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>dyna_rc</name>
+  <version>0.1.0</version>
+  <description>DynaRC: dynamics-robust single-frame and rate-adaptive sequence relocalization with 4D radar.</description>
+  <!-- Replace this placeholder with the maintainer's confirmed public email. -->
+  <maintainer email="maintainer@example.com">Chuan Cao</maintainer>
+  <author>Chuan Cao</author>
+  <author>Xingyi Li</author>
+  <author>Tianchen Deng</author>
+  <author>Jingchuan Wang</author>
+  <url type="website">https://github.com/Caochuan008</url>
+  <!-- No project-wide license has been selected; see LICENSE_NOTICE.md. -->
+  <license>TODO</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>roscpp</depend>
+  <depend>rospy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>tf</depend>
+  <depend>pcl_ros</depend>
+  <depend>pcl_conversions</depend>
+  <depend>libpcl-all-dev</depend>
+  <depend>eigen</depend>
+  <!-- Used only when DYNA_RC_BUILD_BASELINES=ON. -->
+  <depend>libopencv-dev</depend>
+  <exec_depend>roslaunch</exec_depend>
+  <exec_depend>rosbag</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-scipy</exec_depend>
+  <exec_depend>python3-matplotlib</exec_depend>
+  <test_depend>rostest</test_depend>
+  <export/>
+</package>

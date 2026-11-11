@@ -1,0 +1,98 @@
+<launch>
+  <arg name="run_radar_preprocessing" default="false"/>
+  <arg name="radar_preprocessing_launch" default="ntu_preprocessing.launch"/>     
+  <arg name="radar_topic" default="/radar_v_points"/>
+  <arg name="radar_stat_topic" default="/radar_points_inlier"/>
+  <arg name="radar_dyna_topic" default="/radar_points_outlier"/>
+  <arg name="use_sim_time" default="true"/>
+
+  <arg name="data_dir" />
+  <arg name="poses_file" default="$(arg data_dir)/poses.txt"/>
+  <arg name="pcd_dir" default="$(arg data_dir)/keyframes"/>
+  <arg name="gt_file" default="$(arg data_dir)/gt.txt"/>
+
+  <arg name="output_csv" default="$(env HOME)/.ros/dynarc/referee.csv"/>
+  <arg name="algorithm_name" default="ReFeree-4D (binary polar + ICP)"/>
+  <arg name="record" default="false"/>
+  <arg name="overwrite" default="false"/>
+  <arg name="gt_time_offset" default="0.0"/>
+  <arg name="max_gt_gap" default="1.0"/>
+  <arg name="input_mode" default="combined"/>
+  <arg name="intensity_field" default="intensity"/>
+  <arg name="map_intensity_field" default="$(arg intensity_field)"/>
+  <arg name="min_intensity" default="0.0"/>
+  <arg name="z_min" default="-10.0"/>
+  <arg name="z_max" default="50.0"/>
+  <arg name="sc_max_radius" default="50.0"/>
+  
+  <arg name="sc_dist_thres" default="1000000000.0"/>
+  <arg name="angle_bins" default="400"/>
+  <arg name="range_bins" default="3360"/>
+  <arg name="range_block" default="80"/>
+  <arg name="angle_block" default="8"/>
+  <arg name="use_yaw" default="true"/>
+  <arg name="min_points" default="3"/>
+  <arg name="sync_tolerance" default="0.02"/>
+  <arg name="queue_size" default="1"/>
+  <arg name="max_corr_dist" default="2.0"/>
+  <arg name="max_iter" default="50"/>
+  <arg name="trans_eps" default="0.000001"/>
+  <arg name="fitness_eps" default="0.000001"/>
+  <arg name="publish_tf" default="true"/>
+  <arg name="runtime_timing_enabled" default="false"/>
+  <arg name="runtime_output_dir" default="$(env HOME)/.ros/localization_runtime"/>
+
+  <param name="use_sim_time" value="$(arg use_sim_time)"/>
+  <include if="$(arg run_radar_preprocessing)" file="$(find dyna_rc)/launch/$(arg radar_preprocessing_launch)">
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="radar_topic" value="$(arg radar_topic)"/>
+    <arg name="radar_stat_topic" value="$(arg radar_stat_topic)"/>
+    <arg name="radar_dyna_topic" value="$(arg radar_dyna_topic)"/>
+  </include>
+
+  <node pkg="dyna_rc" type="referee_place_recognition" name="referee_place_recognition"
+        output="screen" respawn="false" required="true">
+    <param name="poses_file" value="$(arg poses_file)"/>
+    <param name="pcd_dir" value="$(arg pcd_dir)"/>
+    <param name="radar_stat_topic" value="$(arg radar_stat_topic)"/>
+    <param name="radar_dyna_topic" value="$(arg radar_dyna_topic)"/>
+    <param name="referee_input_mode" value="$(arg input_mode)"/>
+    <param name="referee_intensity_field" value="$(arg intensity_field)"/>
+    <param name="referee_map_intensity_field" value="$(arg map_intensity_field)"/>
+    <param name="referee_min_intensity" value="$(arg min_intensity)" type="double"/>
+    <param name="z_min" value="$(arg z_min)" type="double"/>
+    <param name="z_max" value="$(arg z_max)" type="double"/>
+    <param name="sc_max_radius" value="$(arg sc_max_radius)" type="double"/>
+    <param name="sc_dist_thres" value="$(arg sc_dist_thres)" type="double"/>
+    <param name="referee_angle_bins" value="$(arg angle_bins)" type="int"/>
+    <param name="referee_range_bins" value="$(arg range_bins)" type="int"/>
+    <param name="referee_range_block" value="$(arg range_block)" type="int"/>
+    <param name="referee_angle_block" value="$(arg angle_block)" type="int"/>
+    <param name="referee_use_yaw" value="$(arg use_yaw)" type="bool"/>
+    <param name="referee_min_points" value="$(arg min_points)" type="int"/>
+    <param name="referee_sync_tolerance" value="$(arg sync_tolerance)" type="double"/>
+    <param name="referee_queue_size" value="$(arg queue_size)" type="int"/>
+    <param name="max_corr_dist" value="$(arg max_corr_dist)" type="double"/>
+    <param name="max_iter" value="$(arg max_iter)" type="int"/>
+    <param name="trans_eps" value="$(arg trans_eps)" type="double"/>
+    <param name="fitness_eps" value="$(arg fitness_eps)" type="double"/>
+    <param name="publish_tf" value="$(arg publish_tf)" type="bool"/>
+    <param name="runtime_timing_enabled" value="$(arg runtime_timing_enabled)" type="bool"/>
+    <param name="runtime_output_dir" value="$(arg runtime_output_dir)"/>
+  </node>
+
+  <node if="$(arg record)" pkg="dyna_rc" type="localization_recall_recorder.py"
+        name="localization_recall_recorder" output="screen" required="true">
+    <param name="keyframe_poses_file" value="$(arg poses_file)"/>
+    <param name="gt_file" value="$(arg gt_file)"/>
+    <param name="output_csv" value="$(arg output_csv)"/>
+    <param name="algorithm_name" value="$(arg algorithm_name)"/>
+    <param name="localization_topic" value="/localization_odom"/>
+    <param name="score_threshold_param" value="/referee_place_recognition/sc_dist_thres"/>
+    <param name="score_definition" value="ReFeree R-Descriptor Euclidean distance; 4D binary polar point-cloud adaptation"/>
+    <param name="gt_time_offset" value="$(arg gt_time_offset)" type="double"/>
+    <param name="max_gt_gap" value="$(arg max_gt_gap)" type="double"/>
+    <param name="overwrite" value="$(arg overwrite)" type="bool"/>
+  </node>
+
+</launch>

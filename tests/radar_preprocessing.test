@@ -1,0 +1,37 @@
+<launch>
+  <param name="use_sim_time" value="false"/>
+  <!-- Exercise both the normal mode and the original 2-DoF covariance dimension bug. -->
+  <group ns="preprocess_test_3">
+    <remap from="/radar_points_inlier" to="inlier"/>
+    <remap from="/radar_points_outlier" to="outlier"/>
+    <remap from="/radar_points_inlier_2d" to="flat"/>
+    <remap from="/radar_vel" to="radar_vel"/>
+    <remap from="/ego_vel" to="ego_vel"/>
+    <node pkg="dyna_rc" type="radar_ego_motion" name="preprocess" output="screen">
+      <param name="radar_topic" value="/preprocess_test_input"/>
+      <param name="n_dof" value="3"/>
+      <param name="radar_type" value="2"/>
+      <param name="mounting_angle_x" value="0.0" type="double"/>
+      <param name="ground_filter" value="true"/>
+      <param name="unstable_filter" value="true"/>
+      <param name="use_rcs" value="true"/>
+    </node>
+  </group>
+  <group ns="preprocess_test_2">
+    <remap from="/radar_points_inlier" to="inlier"/>
+    <remap from="/radar_points_outlier" to="outlier"/>
+    <remap from="/radar_points_inlier_2d" to="flat"/>
+    <remap from="/radar_vel" to="radar_vel"/>
+    <remap from="/ego_vel" to="ego_vel"/>
+    <node pkg="dyna_rc" type="radar_ego_motion" name="preprocess" output="screen">
+      <param name="radar_topic" value="/preprocess_test_input"/>
+      <param name="n_dof" value="2"/>
+      <param name="radar_type" value="2"/>
+      <param name="mounting_angle_x" value="0.0" type="double"/>
+      <param name="ground_filter" value="true"/>
+      <param name="unstable_filter" value="true"/>
+      <param name="use_rcs" value="true"/>
+    </node>
+  </group>
+  <test test-name="radar_preprocessing" pkg="dyna_rc" type="test_radar_preprocessing.py" time-limit="50"/>
+</launch>

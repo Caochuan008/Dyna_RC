@@ -1,0 +1,21 @@
+Upstream: https://github.com/hyesu-jang/RaPlace
+Paper: RaPlace (IROS 2023).
+Source: user-supplied RaPlace-main/RaPlace-main/raplace_cpp, copied 2026-10-31.
+This is the upstream RaPlace-Light C++ port, not the MATLAB/Python implementation.
+The supplied archive has no LICENSE file; no new license is asserted here.
+
+Original SHA256:
+raplace.hpp 246D25B45244702170319BB62C90FC1EE8782861EF28F8F489AA6D2A52C93C00
+raplace.cpp 8197F16A421E827EDFD3F622086E4319ABED953F61754D25C4C013E9A9CD949B
+
+Local changes:
+- Expose the existing fromCart core for point-cloud BEV input. Radon/FFT and
+  correlation formulas, work_size=69, n_theta=180, n_theta_out=18 are retained.
+- Fix candidate count N-exclude_recent+1 to N-exclude_recent, so offline-map
+  searches with exclude_recent=0 include all N entries without reading past N.
+- Validate descriptor sizes/types and reject zero/nonfinite query descriptors.
+- Resolve exact correlation ties by the lower map-array index.
+- Clamp tiny negative distances due to floating-point self-match roundoff to 0.
+
+Point-cloud rasterization, ROS map loading, ICP and evaluation are separate
+adapter code in src/raplace_place_recognition.cpp and include/dyna_rc/raplace_input.h.

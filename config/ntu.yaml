@@ -1,0 +1,62 @@
+# Raw NTU PointCloud topic. The preprocessing launch overrides this to
+# /radar_v_points only inside radar_ego_motion's private namespace.
+radar_topic: "/radar_enhanced_pcl"
+
+# Radar preprocessing: values from the user's validated NTU launch.
+use_rcs: false
+radar_type: 2      #1: zf 2: oculii
+n_dof: 3
+ransac_threshold: 0.25
+unstable_filter: true
+ground_filter: true
+input_leaf_size: 0.3
+min_scan_range: 0.0
+max_scan_range: 250.0
+min_height: -30.0
+max_height: 50.0
+min_intensity: 0.0
+t_x: 0.6
+t_y: 0.0
+t_z: 1.75
+mounting_angle_x: 0.0
+mounting_angle_y: -0.04
+mounting_angle_z: 0.0
+debug_mode: false
+tictoc: false
+
+# Original ntu.yaml calibration. Camera/IMU settings are retained for reference;
+# this radar-only launch does not start image processing or IMU fusion.
+img_topic: "/rgb_cam/image_raw"
+imu_topic: "/livox/imu"
+pose_topic: "/current_pose"
+cam_width: 640
+cam_height: 480
+t1_radar2cam: 0.0659530032036776
+t2_radar2cam: 0.108374858163385
+t3_radar2cam: 0.0699178702997177
+# loop1 & loop2
+r1_radar2cam: 1.18898876
+r2_radar2cam: -1.2118898876
+r3_radar2cam: 1.23579284
+fx: 332.232689
+fy: 333.058485
+cx: 332.644823
+cy: 240.998586
+# cp, nyl & garden (alternative camera rotation; unused by radar preprocessing)
+# r1_radar2cam: -1.1249681
+# r2_radar2cam: -1.33902631
+# r3_radar2cam: -1.33977201
+
+# Oculii Eagle accuracy (m, deg, deg, Doppler setting).
+range_accuracy: 0.86
+azimuth_accuracy: 0.7
+elevation_accuracy: 0.175
+velocity_accuracy: 0.09
+
+accelerometer_noise_density: 0.0022281160035059417
+accelerometer_random_walk: 0.00011782392708033614
+gyroscope_noise_density: 0.00011667951042710442
+gyroscope_random_walk: 2.616129872371749e-06
+bg_x: 0.0
+bg_y: 0.0
+bg_z: -0.00021668

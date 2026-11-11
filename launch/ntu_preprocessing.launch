@@ -1,0 +1,30 @@
+<launch>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="config" default="$(find dyna_rc)/config/ntu.yaml"/>
+  <!-- radar_topic remains the converted PointCloud2 topic used by existing entry launches.
+       The raw PointCloud input is radar_topic inside ntu.yaml. -->
+  <arg name="radar_topic" default="/radar_v_points"/>
+  <arg name="radar_stat_topic" default="/radar_points_inlier"/>
+  <arg name="radar_dyna_topic" default="/radar_points_outlier"/>
+  <!-- Optional overrides used by the existing main launch; empty keeps ntu.yaml. -->
+  <arg name="min_scan_range" default=""/>
+  <arg name="max_scan_range" default=""/>
+  <arg name="min_height" default=""/>
+  <arg name="max_height" default=""/>
+  <param name="use_sim_time" value="$(arg use_sim_time)" type="bool"/>
+
+  <node pkg="dyna_rc" type="pointcloud_converter_node" name="pointcloud_converter" output="screen" respawn="false">
+    <rosparam command="load" file="$(arg config)"/>
+    <param name="output_topic" value="$(arg radar_topic)" type="str"/>
+  </node>
+  <node pkg="dyna_rc" type="radar_ego_motion" name="radar_ego_motion" output="screen" respawn="false">
+    <rosparam command="load" file="$(arg config)"/>
+    <param name="radar_topic" value="$(arg radar_topic)" type="str"/>
+    <param if="$(eval arg('min_scan_range') != '')" name="min_scan_range" value="$(arg min_scan_range)" type="double"/>
+    <param if="$(eval arg('max_scan_range') != '')" name="max_scan_range" value="$(arg max_scan_range)" type="double"/>
+    <param if="$(eval arg('min_height') != '')" name="min_height" value="$(arg min_height)" type="double"/>
+    <param if="$(eval arg('max_height') != '')" name="max_height" value="$(arg max_height)" type="double"/>
+    <remap from="/radar_points_inlier" to="$(arg radar_stat_topic)"/>
+    <remap from="/radar_points_outlier" to="$(arg radar_dyna_topic)"/>
+  </node>
+</launch>

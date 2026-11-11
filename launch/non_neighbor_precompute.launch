@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="poses_file" />
+  <arg name="pcd_dir" />
+  <arg name="output_csv" default="$(arg poses_file).non_neighbor.csv" />
+  <!-- Match these descriptor settings to the online place_recognition node. -->
+  <arg name="use_dynamic_sc" default="false" />
+  <arg name="sc_max_radius" default="80.0" />
+  <arg name="z_min" default="-2.0" />
+  <arg name="z_max" default="50.0" />
+  <arg name="success_xy_m" default="3.0" />
+  <arg name="success_yaw_deg" default="15.0" />
+  <node pkg="dyna_rc" type="non_neighbor_precompute" name="non_neighbor_precompute" output="screen" respawn="false">
+    <param name="poses_file" value="$(arg poses_file)" />
+    <param name="pcd_dir" value="$(arg pcd_dir)" />
+    <param name="output_csv" value="$(arg output_csv)" />
+    <param name="use_dynamic_sc" value="$(arg use_dynamic_sc)" type="bool" />
+    <param name="sc_max_radius" value="$(arg sc_max_radius)" type="double" />
+    <param name="z_min" value="$(arg z_min)" type="double" />
+    <param name="z_max" value="$(arg z_max)" type="double" />
+    <param name="success_xy_m" value="$(arg success_xy_m)" type="double" />
+    <param name="success_yaw_deg" value="$(arg success_yaw_deg)" type="double" />
+  </node>
+</launch>

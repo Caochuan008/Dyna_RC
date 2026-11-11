@@ -1,0 +1,23 @@
+<launch>
+  <arg name="keyframe_poses_file" />
+  <arg name="gt_file" />
+  <arg name="output_csv" default="$(env HOME)/.ros/localization_recall/alg1.csv" />
+  <arg name="algorithm_name" default="" />
+  <arg name="localization_topic" default="/localization_odom" />
+  <arg name="score_threshold_param" default="" />
+  <arg name="gt_time_offset" default="0.0" />
+  <arg name="max_gt_gap" default="1.0" />
+  <arg name="overwrite" default="false" />
+
+  <node pkg="dyna_rc" type="localization_recall_recorder.py" name="localization_recall_recorder" output="screen">
+    <param name="keyframe_poses_file" value="$(arg keyframe_poses_file)" />
+    <param name="gt_file" value="$(arg gt_file)" />
+    <param name="output_csv" value="$(arg output_csv)" />
+    <param name="algorithm_name" value="$(arg algorithm_name)" type="str" />
+    <param name="localization_topic" value="$(arg localization_topic)" />
+    <param name="score_threshold_param" value="$(arg score_threshold_param)" type="str" />
+    <param name="gt_time_offset" value="$(arg gt_time_offset)" type="double" />
+    <param name="max_gt_gap" value="$(arg max_gt_gap)" type="double" />
+    <param name="overwrite" value="$(arg overwrite)" type="bool" />
+  </node>
+</launch>

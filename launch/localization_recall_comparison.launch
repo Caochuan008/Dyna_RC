@@ -1,0 +1,47 @@
+<launch>
+  <arg name="csv_dir" default="$(env HOME)/.ros/localization_recall" />
+  <arg name="algorithm_count" default="3" />
+  <arg name="csv_files" default="[]" />
+  <arg name="algorithm_labels" default="[]" />
+  <arg name="output_dir" default="$(arg csv_dir)/comparison" />
+  <arg name="recall_thresholds" default="[2.0, 5.0, 10.0]" />
+  <arg name="score_mode" default="native"/>
+  <arg name="score_normalization" default="minmax"/>
+  <arg name="algorithm_score_maxima" default="[]"/>
+  <arg name="score_min" default="0.0" />
+  <arg name="score_max" default="1.0" />
+  <arg name="score_step" default="0.02" />
+  <!-- Evaluate the localization output against GT; distance_mode=xy selects planar distance. -->
+  <arg name="error_source" default="localization" />
+  <arg name="distance_mode" default="xy" />
+  <arg name="denominator" default="accepted" />
+  <arg name="total_queries" default="0" />
+  <arg name="paper_width_mm" default="180.0" />
+  <arg name="paper_height_mm" default="58.0" />
+  <arg name="font_size_pt" default="9.0" />
+  <arg name="legend_font_size_pt" default="9.0" />
+
+  <node pkg="dyna_rc" type="localization_recall_comparison.py" name="localization_recall_comparison"
+        output="screen" respawn="false">
+    <param name="csv_dir" value="$(arg csv_dir)" />
+    <param name="algorithm_count" value="$(arg algorithm_count)" type="int" />
+    <rosparam param="csv_files" subst_value="true">$(arg csv_files)</rosparam>
+    <rosparam param="algorithm_labels" subst_value="true">$(arg algorithm_labels)</rosparam>
+    <param name="output_dir" value="$(arg output_dir)" />
+    <rosparam param="recall_thresholds" subst_value="true">$(arg recall_thresholds)</rosparam>
+    <param name="score_mode" value="$(arg score_mode)"/>
+    <param name="score_normalization" value="$(arg score_normalization)"/>
+    <rosparam param="algorithm_score_maxima" subst_value="true">$(arg algorithm_score_maxima)</rosparam>
+    <param name="score_min" value="$(arg score_min)" type="double" />
+    <param name="score_max" value="$(arg score_max)" type="double" />
+    <param name="score_step" value="$(arg score_step)" type="double" />
+    <param name="error_source" value="$(arg error_source)" />
+    <param name="distance_mode" value="$(arg distance_mode)" />
+    <param name="denominator" value="$(arg denominator)" />
+    <param name="total_queries" value="$(arg total_queries)" type="int" />
+    <param name="paper_width_mm" value="$(arg paper_width_mm)" type="double" />
+    <param name="paper_height_mm" value="$(arg paper_height_mm)" type="double" />
+    <param name="font_size_pt" value="$(arg font_size_pt)" type="double" />
+    <param name="legend_font_size_pt" value="$(arg legend_font_size_pt)" type="double" />
+  </node>
+</launch>

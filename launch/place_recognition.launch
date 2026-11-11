@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Map input is required; no machine-specific paths are embedded. -->
+  <arg name="data_dir"/>
+  <arg name="poses_file" default="$(arg data_dir)/poses.txt"/>
+  <arg name="pcd_dir" default="$(arg data_dir)/keyframes"/>
+  <arg name="gt_file" default="$(arg data_dir)/gt.txt"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="run_radar_preprocessing" default="false"/>
+  <arg name="radar_preprocessing_launch" default="ntu_preprocessing.launch"/>
+  <arg name="radar_topic" default="/radar_v_points"/>
+  <arg name="radar_stat_topic" default="/radar_points_inlier"/>
+  <arg name="radar_dyna_topic" default="/radar_points_outlier"/>
+  <arg name="record" default="false"/>
+  <arg name="output_csv" default="$(env HOME)/.ros/dynarc/place_recognition.csv"/>
+  <arg name="algorithm_name" default="DynaRC"/>
+  <arg name="overwrite" default="false"/>
+  <arg name="gt_time_offset" default="0.0"/>
+  <arg name="max_gt_gap" default="1.0"/>
+  <arg name="runtime_output_dir" default="$(env HOME)/.ros/dynarc/runtime"/>
+  <arg name="metrics_log_file" default=""/>
+  <arg name="use_dynamic_sc" default="true"/>
+  <arg name="sc_channel" default="1"/>
+  <arg name="sc_max_radius" default="80.0"/>
+  <arg name="sc_dist_thres" default="1.0"/>
+  <arg name="seq_distance_threshold" default="1.0"/>
+  <arg name="seq_type" default="2"/>
+  <arg name="skip_fine_matching" default="false"/>
+  <arg name="z_min" default="-2.0"/>
+  <arg name="z_max" default="50.0"/>
+  <arg name="voxel_leaf_size" default="1.0"/>
+  <arg name="max_corr_dist" default="2.0"/>
+  <arg name="max_iter" default="50"/>
+  <arg name="trans_eps" default="0.000001"/>
+  <arg name="fitness_eps" default="0.000001"/>
+  <arg name="runtime_timing_enabled" default="false"/>
+  <arg name="runtime_report_every" default="200"/>
+
+  <param name="use_sim_time" value="$(arg use_sim_time)" type="bool"/>
+  <param name="poses_file" value="$(arg poses_file)" type="str"/>
+  <param name="pcd_dir" value="$(arg pcd_dir)" type="str"/>
+  <param name="radar_topic" value="$(arg radar_topic)" type="str"/>
+  <param name="radar_stat_topic" value="$(arg radar_stat_topic)" type="str"/>
+  <param name="radar_dyna_topic" value="$(arg radar_dyna_topic)" type="str"/>
+  <param name="runtime_output_dir" value="$(arg runtime_output_dir)" type="str"/>
+  <param name="metrics_log_file" value="$(arg metrics_log_file)" type="str"/>
+  <param name="use_dynamic_sc" value="$(arg use_dynamic_sc)" type="bool"/>
+  <param name="sc_channel" value="$(arg sc_channel)" type="int"/>
+  <param name="sc_max_radius" value="$(arg sc_max_radius)" type="double"/>
+  <param name="sc_dist_thres" value="$(arg sc_dist_thres)" type="double"/>
+  <param name="seq_distance_threshold" value="$(arg seq_distance_threshold)" type="double"/>
+  <param name="seq_type" value="$(arg seq_type)" type="int"/>
+  <param name="skip_fine_matching" value="$(arg skip_fine_matching)" type="bool"/>
+  <param name="z_min" value="$(arg z_min)" type="double"/>
+  <param name="z_max" value="$(arg z_max)" type="double"/>
+  <param name="voxel_leaf_size" value="$(arg voxel_leaf_size)" type="double"/>
+  <param name="max_corr_dist" value="$(arg max_corr_dist)" type="double"/>
+  <param name="max_iter" value="$(arg max_iter)" type="int"/>
+  <param name="trans_eps" value="$(arg trans_eps)" type="double"/>
+  <param name="fitness_eps" value="$(arg fitness_eps)" type="double"/>
+  <param name="runtime_timing_enabled" value="$(arg runtime_timing_enabled)" type="bool"/>
+  <param name="runtime_report_every" value="$(arg runtime_report_every)" type="int"/>
+
+  <include if="$(arg run_radar_preprocessing)" file="$(find dyna_rc)/launch/$(arg radar_preprocessing_launch)">
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="radar_topic" value="$(arg radar_topic)"/>
+    <arg name="radar_stat_topic" value="$(arg radar_stat_topic)"/>
+    <arg name="radar_dyna_topic" value="$(arg radar_dyna_topic)"/>
+  </include>
+  <node pkg="dyna_rc" type="place_recognition" name="place_recognition" output="screen" respawn="false"/>
+  <include if="$(arg record)" file="$(find dyna_rc)/launch/localization_recall_recorder.launch">
+    <arg name="keyframe_poses_file" value="$(arg poses_file)"/>
+    <arg name="gt_file" value="$(arg gt_file)"/>
+    <arg name="output_csv" value="$(arg output_csv)"/>
+    <arg name="algorithm_name" value="$(arg algorithm_name)"/>
+    <arg name="localization_topic" value="/localization_odom"/>
+    <arg name="score_threshold_param" value="/sc_dist_thres"/>
+    <arg name="overwrite" value="$(arg overwrite)"/>
+    <arg name="gt_time_offset" value="$(arg gt_time_offset)"/>
+    <arg name="max_gt_gap" value="$(arg max_gt_gap)"/>
+  </include>
+</launch>

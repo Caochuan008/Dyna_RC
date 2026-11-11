@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Use the exact map pose file loaded by place_recognition, not park-full.txt. -->
+  <arg name="keyframe_poses_file" />
+  <arg name="non_neighbor_csv" default="" />
+  <arg name="gt_file" />
+  <arg name="localization_topic" default="/localization_odom" />
+  <arg name="output_dir" default="$(env HOME)/.ros/localization_error_histograms" />
+  <arg name="gt_time_offset" default="0.0" />
+  <arg name="max_gt_gap" default="1.0" />
+  <arg name="score_bins" default="50" />
+  <arg name="error_bins" default="50" />
+  <arg name="min_bin_count" default="100" />
+  <arg name="exclude_xy_below_m" default="0.01" />
+  <arg name="exclude_yaw_below_deg" default="0.5" />
+  <arg name="yaw_group_low_deg" default="5.0" />
+  <arg name="yaw_group_high_deg" default="15.0" />
+  <arg name="success_xy_m" default="3.0" />
+  <arg name="success_yaw_deg" default="15.0" />
+  <node pkg="dyna_rc" type="localization_error_histograms.py"
+        name="localization_error_histograms" output="screen">
+    <param name="keyframe_poses_file" value="$(arg keyframe_poses_file)" />
+    <param name="non_neighbor_csv" value="$(arg non_neighbor_csv)" />
+    <param name="gt_file" value="$(arg gt_file)" />
+    <param name="localization_topic" value="$(arg localization_topic)" />
+    <param name="output_dir" value="$(arg output_dir)" />
+    <param name="gt_time_offset" value="$(arg gt_time_offset)" type="double" />
+    <param name="max_gt_gap" value="$(arg max_gt_gap)" type="double" />
+    <param name="score_bins" value="$(arg score_bins)" type="int" />
+    <param name="error_bins" value="$(arg error_bins)" type="int" />
+    <param name="min_bin_count" value="$(arg min_bin_count)" type="int" />
+    <param name="exclude_xy_below_m" value="$(arg exclude_xy_below_m)" type="double" />
+    <param name="exclude_yaw_below_deg" value="$(arg exclude_yaw_below_deg)" type="double" />
+    <param name="yaw_group_low_deg" value="$(arg yaw_group_low_deg)" type="double" />
+    <param name="yaw_group_high_deg" value="$(arg yaw_group_high_deg)" type="double" />
+    <param name="success_xy_m" value="$(arg success_xy_m)" type="double" />
+    <param name="success_yaw_deg" value="$(arg success_yaw_deg)" type="double" />
+  </node>
+</launch>

@@ -111,21 +111,32 @@ baseline score scales retained. See [third-party notices](THIRD_PARTY_NOTICES.md
 
 ## 3. Datasets and map format
 
-Dataset downloads will be added here. No bag files, maps, experiment CSVs, or
-generated plots are included in this repository.
+### SJTU dynamic indoor and outdoor datasets
 
-| Map / query pair | Bag download | Keyframes and reference trajectories | Notes |
-|---|---|---|---|
-| NTU-LOOP1, first / second traversal | **[TODO: BAG URL]** | **[TODO: MAP + GT URL]** | Shared reconstruction frame |
-| SJTU-IMR2, map / query traversal | **[TODO: BAG URL]** | **[TODO: MAP + GT URL]** | Indoor corridors and pedestrian occlusions |
-| SJTU-ROAD / DYNA | **[TODO: BAG URL]** | **[TODO: MAP + ALIGNED GT URL]** | Separate sessions |
-| NTU-CP / SMOKE | **[TODO: BAG URL]** | **[TODO: MAP + ALIGNED GT URL]** | Separate clear/smoke sessions |
+**Download:** [SJTU datasets, keyframe maps and reference trajectories (Quark Drive)](https://pan.quark.cn/s/fd9142ac371f)  
+**Extraction code:** `vTf9`
 
-Additional release fields: **[TODO: download password, checksums, dataset license,
-source dataset citation, and exact query time intervals]**.
-NTU source data should be distributed or linked under the original dataset's terms.
+| Dataset | Environment |
+|---|---|
+| SJTU-IMR2 | Indoor corridors with pedestrian activity and occlusion |
+| SJTU-ROAD / DYNA | Outdoor campus roads under different traffic conditions |
 
-Example directory layout:
+The shared download contains both SJTU datasets, including:
+
+- ROS bags for relocalization.
+- Keyframe maps built with **RaVISLAM**: keyframe point clouds (`keyframes/`)
+  and the corresponding timestamps and poses.
+- Ground-truth/reference trajectories for the relocalization bags.
+
+The data are hosted separately from this source repository. See
+[docs/datasets.md](docs/datasets.md) for input and evaluation conventions.
+
+**NTU:** [NTU4DRadLM official dataset](https://github.com/junzhang2016/NTU4DRadLM).
+
+### Map and trajectory format
+
+Example layout below uses illustrative filenames. Set `poses_file`, `pcd_dir`
+and `gt_file` to the actual paths in the download; renaming the files is optional.
 
 ```text
 dataset/
@@ -162,18 +173,10 @@ required keyframe map with this package.
 
 ## 4. Run relocalization
 
-### NTU / Oculii raw bags
+### Bags with preprocessed radar streams
 
-The supplied converter expects `/radar_enhanced_pcl` as
-`sensor_msgs/PointCloud`. It converts the original NTU channels to the
-`PointCloud2` fields used by preprocessing:
-
-```text
-/radar_enhanced_pcl
-  -> pointcloud_converter_node -> /radar_v_points
-  -> radar_ego_motion -> /radar_points_inlier + /radar_points_outlier
-  -> single-frame DynaRC or Seq-DynaRC
-```
+For bags containing `/radar_points_inlier` and `/radar_points_outlier`, load
+the matching RaVISLAM keyframe map and leave preprocessing disabled.
 
 **Single frame**, terminal 1:
 
@@ -181,9 +184,8 @@ The supplied converter expects `/radar_enhanced_pcl` as
 source ~/dynarc_ws/devel/setup.bash
 roslaunch dyna_rc place_recognition.launch \
   data_dir:=/absolute/path/to/dataset \
-  run_radar_preprocessing:=true \
-  radar_preprocessing_launch:=ntu_preprocessing.launch \
-  sc_max_radius:=250.0 sc_channel:=1
+  run_radar_preprocessing:=false \
+  sc_max_radius:=50.0 sc_channel:=2
 ```
 
 Or use **sequence matching** instead:
@@ -191,9 +193,8 @@ Or use **sequence matching** instead:
 ```bash
 roslaunch dyna_rc seq_place_recognition.launch \
   data_dir:=/absolute/path/to/dataset \
-  run_radar_preprocessing:=true \
-  radar_preprocessing_launch:=ntu_preprocessing.launch \
-  sc_max_radius:=250.0 sc_channel:=1
+  run_radar_preprocessing:=false \
+  sc_max_radius:=50.0 sc_channel:=2
 ```
 
 Terminal 2, after the map has loaded:
@@ -207,22 +208,22 @@ Use one matcher at a time for comparative runs, and restart the node and replay
 the same query interval for each method. Main launches use simulation time by
 default. For live input, set `use_sim_time:=false`.
 
-The NTU raw topic and calibration settings are in [config/ntu.yaml](config/ntu.yaml).
-`Power -> intensity`, `Range -> range`, `Alpha -> azimuth` (degrees to radians),
-`-Beta -> elevation` (degrees to radians), and `Doppler -> velocity`.
-Required channel names are case-sensitive. XYZ and timestamps are preserved.
-NTU uses `use_rcs=false`, so the encoded intensity originates from `Power`.
+The example uses the IMR2 descriptor radius of 50 m and the intensity channel
+(`sc_channel=2`). For ROAD/DYNA, use `sc_max_radius:=250.0`. Select the feature
+channel and map paths for the intended experiment.
 
-### SJTU / ZF raw bags
+### SJTU / ZF bags requiring preprocessing
 
-Use `radar_preprocessing_launch:=radar_preprocessing.launch` and set
-`radar_topic` to the raw ZF `PointCloud2` topic in your bag. The default
+For a bag containing raw ZF `PointCloud2` measurements, enable
+`run_radar_preprocessing:=true`, explicitly set
+`radar_preprocessing_launch:=radar_preprocessing.launch`, and set
+`radar_topic` to the raw topic in the bag. The default
 `/radar_v_points` is only an example. This launch preserves the supplied ZF
 extrinsic, ground-filter, RANSAC, and unstable-filter settings; inspect
 [launch/radar_preprocessing.launch](launch/radar_preprocessing.launch) for another
 platform. Its `use_rcs=true` places the original RCS into output `intensity`.
 
-### Already preprocessed bags
+### Input stream requirements
 
 Leave `run_radar_preprocessing:=false` (the default) and publish both:
 
@@ -285,84 +286,7 @@ are in `src/seq_place_recognition.cpp`; they are not exposed as launch arguments
 See [implementation notes](docs/implementation_notes.md) for retained search
 limits and other snapshot-specific details.
 
-## 6. Evaluation
-
-Record one method per replay, using the same map and aligned query GT:
-
-```bash
-roslaunch dyna_rc seq_place_recognition.launch \
-  data_dir:=/absolute/path/to/dataset \
-  run_radar_preprocessing:=true \
-  record:=true gt_file:=/absolute/path/to/aligned_gt.txt \
-  output_csv:=$HOME/dynarc_results/seq.csv algorithm_name:=Seq-DynaRC \
-  sc_max_radius:=250.0 sc_channel:=1
-```
-
-After replay finishes, stop the recorder with Ctrl+C so its metadata is finalized.
-Keep each CSV **together with** its `.meta.json`. The recorder interpolates GT at
-the localization timestamp and stores output-pose errors and matched-keyframe
-errors separately. The comparison default uses **output pose vs GT, planar XY**.
-
-Given `single.csv` and `seq.csv` plus their metadata:
-
-```bash
-roslaunch dyna_rc localization_recall_comparison.launch \
-  csv_dir:=$HOME/dynarc_results algorithm_count:=2 \
-  csv_files:="['single.csv','seq.csv']" \
-  algorithm_labels:="['DynaRC','Seq-DynaRC']" \
-  recall_thresholds:="[2.0,5.0,10.0]" \
-  score_mode:=native score_normalization:=minmax
-```
-
-The comparison writes a score/acceptance row, a three-panel success-vs-acceptance
-figure, individual plots, and curve CSVs. `score_mode=native` sweeps each method's
-own observed distances, including RaPlace/ReFeree's different scales. Min-max
-normalization only changes the displayed threshold axis; it does not alter
-matches. For a shared cosine-score grid, use `score_mode:=grid`,
-`score_min:=0.1 score_max:=0.6 score_step:=0.02`.
-
-With `denominator=accepted`, the plotted value labelled Recall@r is the
-**conditional localization success rate**:
-
-```text
-success(r, tau) = count(score < tau AND XY error < r AND valid GT)
-                 / count(score < tau AND valid GT)
-
-retention(tau)  = count(recorded score < tau) / count(recorded outputs)
-```
-
-This is not recall over all incoming scans. Seq-DynaRC can withhold a pose before
-the recorder sees it. Therefore 100% retention means retaining all **published**
-results. Use runtime attempted/published counts to report publication coverage.
-Do not remove metadata checks to mix different GT files, maps, or censored score
-ranges. More tools are documented in [evaluation.md](docs/evaluation.md).
-
-## 7. Runtime and tests
-
-Enable `runtime_timing_enabled:=true` on the single-frame or sequence launch.
-The profiler creates a new run directory with `frames.csv`, `summary.csv`, and
-`metadata.txt`. It uses a wall clock, independent of bag simulation time.
-Stage means over all attempts and ICP time per executed call have different
-denominators. P95 is the 95th percentile of elapsed time, not a confidence bound.
-The supplied source has auxiliary candidate ICP disabled at its call site.
-
-Run the retained checks on Ubuntu:
-
-```bash
-cd ~/dynarc_ws
-catkin_make run_tests_dyna_rc -j2
-catkin_test_results
-cd src/Dyna_RC
-python3 -m unittest discover -s tests -p 'test_localization*.py'
-python3 -m unittest discover -s tests -p 'test_histogram_plot_filters.py'
-```
-
-The ROS integration test exercises the radar preprocessing stream; C++ tests
-cover NTU field conversion, sequence static mode, runtime statistics, and the
-optional RaPlace core. A passing unit test does not replace replaying the released
-bag with the matching map and calibration.
-
-## 8. Repository structure
+## 6. Repository structure
 
 ```text
 Dyna_RC/
@@ -371,18 +295,19 @@ Dyna_RC/
 ├── include/dyna_rc/        # package headers
 ├── include/scancontext/    # descriptor and bundled kd-tree
 ├── launch/                 # portable ROS entry points
-├── config/ntu.yaml         # validated NTU conversion/preprocessing parameters
+├── config/                 # sensor conversion/preprocessing parameters
 ├── scripts/                # CSV recording, plots, environment reporting
 ├── tests/                  # retained C++/Python/ROS checks
 ├── third_party/            # optional RaPlace/ReFeree components and notices
 └── docs/                   # datasets, evaluation and implementation details
 ```
 
-## 9. Publication and contact
+## 7. Publication and contact
 
 GitHub: [Caochuan008](https://github.com/Caochuan008).  
 Paper: **[TODO: paper/preprint URL and final citation]**.  
-Dataset download fields are in Section 3 and [docs/datasets.md](docs/datasets.md).
+Dataset downloads and the extraction code are in Section 3 and
+[docs/datasets.md](docs/datasets.md).
 
 The project license and maintainer email still need author confirmation. They
 remain explicit placeholders, rather than an assumed license. Review

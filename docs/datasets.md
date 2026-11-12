@@ -1,25 +1,38 @@
-# Dataset release fields
+# Datasets
 
-Fill this page when the downloadable data are ready. The ROS package accepts
-local files and does not download bags automatically.
+## SJTU dynamic indoor and outdoor datasets
 
-| Pair | Bag URL | Map/GT URL | SHA-256 | Query interval | License/citation |
-|---|---|---|---|---|---|
-| NTU-LOOP1 | TODO | TODO | TODO | TODO | TODO |
-| SJTU-IMR2 | TODO | TODO | TODO | TODO | TODO |
-| SJTU-ROAD/DYNA | TODO | TODO | TODO | TODO | TODO |
-| NTU-CP/SMOKE | TODO | TODO | TODO | TODO | TODO |
+**Download:** [SJTU datasets, keyframe maps and reference trajectories (Quark Drive)](https://pan.quark.cn/s/fd9142ac371f)  
+**Extraction code:** `vTf9`
 
-For each release, also state:
+The download contains **SJTU-IMR2** (indoor corridors with pedestrian activity)
+and **SJTU-ROAD/DYNA** (outdoor campus roads under different traffic conditions).
+Each dataset is supplied with relocalization ROS bags, a **RaVISLAM** keyframe
+map (`keyframes/` point clouds plus timestamps and poses), and the reference
+trajectory for the relocalization data.
 
-- Whether the bag contains raw radar messages or preprocessed static/dynamic streams.
-- Raw topic name, ROS message type, radar model, frame ID, units, and channel mapping.
-- The matching map pose file and numbered PCD directory, including dynamic map clouds if available.
-- Map/query feature channel, range, z filter, and preprocessing calibration.
-- GT timestamp convention, the mapping coordinate frame, and any cross-session alignment applied.
-- Whether the download is mirrored or links to the original data provider.
+## Loading the data
 
-For first/second traversals reconstructed together, retain their shared world
-frame. For separate sessions, provide the query reference already transformed
-into the mapping frame and document the calibrated sensor transforms used.
-Do not describe an unaligned query trajectory as map-frame ground truth.
+Download and extract the files locally, then set these launch arguments:
+
+| Argument | File or directory |
+|---|---|
+| `poses_file` | Map keyframe timestamps and poses |
+| `pcd_dir` | Corresponding `keyframes/` point-cloud directory |
+| `gt_file` | Reference trajectory for the relocalization bag |
+
+Pose files use `timestamp_seconds x y z qx qy qz qw`; timestamps are in seconds
+and translations in metres. Preserve the association between pose rows and
+numbered keyframe point clouds. The names `poses.txt` and `gt.txt` in the README
+are examples, not a requirement on the download's filenames.
+
+Inspect the bag topics before selecting preprocessing. If the static and dynamic
+radar streams are already present, use `run_radar_preprocessing:=false`. For raw
+ZF data, enable preprocessing and explicitly select `radar_preprocessing.launch`
+with the matching raw topic and calibration. See the README for commands.
+
+Evaluation compares the relocalization output against the reference trajectory
+at the same timestamp. Both must be in the map coordinate frame. For separate
+mapping and query sessions, use the aligned query reference trajectory.
+
+**NTU:** [NTU4DRadLM official dataset](https://github.com/junzhang2016/NTU4DRadLM).
